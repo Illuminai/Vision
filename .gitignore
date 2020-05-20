@@ -1,0 +1,9 @@
+# Vision .gitignore
+
+# JetBrains CLion
+cmake-build-debug
+.idea
+
+# Visual Studio
+out
+.vs/
