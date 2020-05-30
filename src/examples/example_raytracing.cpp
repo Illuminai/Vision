@@ -13,7 +13,7 @@ int main() {
 
     rt.scene.shapes.push_back(std::make_shared<Sphere>(Vector3d{1, 0, 0}, .3));
 
-    auto pixels = rt.render_image(800, 600);
+    auto pixels = rt.renderImage(800, 600);
 
     std::ofstream file;
     file.open("test.ppm", std::ios::out | std::ios::binary);

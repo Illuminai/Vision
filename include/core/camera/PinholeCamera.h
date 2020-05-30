@@ -5,9 +5,9 @@
 
 class PinholeCamera : public Camera {
 public:
-    explicit PinholeCamera(Vector3d position) : Camera(position) {}
+    explicit PinholeCamera(Vector3d position, Vector3d rotation) : Camera(position, rotation) {}
 
-    Ray get_ray(double u, double v) override;
+    Ray getRay(double u, double v) override;
 
 };
 

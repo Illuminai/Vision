@@ -1,4 +1,5 @@
 #include "core/shape/Sphere.h"
+#include <algorithm>
 
 bool Sphere::intersect(Ray &ray, RayIntersection &isect) {
     double a = ray.direction.dot(ray.direction);
@@ -19,7 +20,7 @@ bool Sphere::intersect(Ray &ray, RayIntersection &isect) {
         } else {
             isect.time = std::min(time1, time2);
         }
-        isect.normal = ray.point_at_time(isect.time) - position;
+        isect.normal = ray.getPoint(isect.time) - position;
 
         return true;
     }

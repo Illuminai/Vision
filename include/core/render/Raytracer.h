@@ -14,11 +14,11 @@ public:
 
     explicit Raytracer(std::shared_ptr<Camera> camera) : camera(std::move(camera)) {}
 
-    std::vector<Vector3d> render_image(int width, int height);
+    std::vector<Vector3d> renderImage(int width, int height);
 
-    Vector3d get_color(Ray &ray);
+    Vector3d getColor(Ray &ray);
 
-    bool get_intersection(Ray &ray, RayIntersection &isec);
+    bool getIntersection(Ray &ray, RayIntersection &isec);
 };
 
 #endif //VISION_RAYTRACER_H

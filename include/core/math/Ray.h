@@ -12,7 +12,8 @@ public:
 
     Ray(const Vector3d &origin, const Vector3d &direction) : origin(origin), direction(direction) {}
 
-    Vector3d point_at_time(double time) const {
+    //TODO: const reference?
+    Vector3d getPoint(double time) const {
         return origin + direction * time;
     }
 

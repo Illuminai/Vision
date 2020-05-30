@@ -1,7 +1,12 @@
 # Vision .gitignore
 
-# JetBrains CLion
-cmake-build-debug
+# CMake
+cmake-build-debug/
+cmake-build-release/
+CMakeFiles/
+bin/
+
+# JetBrains IDE
 .idea
 
 # Visual Studio

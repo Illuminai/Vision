@@ -1,0 +1,75 @@
+#version 450
+
+layout (local_size_x = 4, local_size_y = 4) in;
+
+layout (binding = 0, rgba8) uniform image2D computeImage;
+
+struct Sphere {
+    float x, y, z;
+};
+
+layout (binding = 1) buffer Spheres
+{
+    Sphere spheres[];
+};
+
+
+vec4 calculateViewport(uint width, uint height){
+    float minX = -2;
+    float maxX = 1;
+    float minY = -1.5;
+    float maxY = 1.5;
+
+    if (height < width){
+        float shift = (abs(minX-maxX) * width / height - abs(minX-maxX)) / 2.0;
+        maxX += shift;
+        minX -= shift;
+    } else if (width < height){
+        float shift = (abs(minY - maxY) * height / width - abs(minY - maxY)) / 2.0;
+        maxY += shift;
+        minY -= shift;
+    }
+    return vec4(minX, maxX, minY, maxY);
+}
+
+void main() {
+    uint idx = gl_GlobalInvocationID.x;
+    uint idy = gl_GlobalInvocationID.y;
+
+    float scale = 3.0;
+    vec2 center = vec2(0.0, 0.0);
+    int iterations = 130;
+
+    ivec2 dimensions  = imageSize(computeImage);
+    int width = dimensions.x;
+    int height = dimensions.y;
+    vec4 viewport = calculateViewport(width, height);
+
+    float factorX = (viewport[1] - viewport[0]) / width;
+    float factorY = (viewport[2] - viewport[3]) / height;
+
+    float x = ((idx * factorX + viewport[0]) / scale) + center.x;
+    float y = ((idy * factorY + viewport[3]) / scale) + center.y;
+
+    float zRe = 0;
+    float zIm = 0;
+    int i = 0;
+
+    for (; i < iterations; i++){
+        float tempZRe = zRe;
+        float tempZIm = zIm;
+
+        zRe = tempZRe * tempZRe - tempZIm * tempZIm + x;
+        zIm = 2 * tempZRe * tempZIm + y;
+
+        if (zRe * zRe + zIm * zIm > 4){
+            break;
+        }
+    }
+
+    if (i == iterations){
+        imageStore(computeImage, ivec2(gl_GlobalInvocationID.xy), vec4(0, 0, 0, 0.0));
+    } else {
+        imageStore(computeImage, ivec2(gl_GlobalInvocationID.xy), vec4(idx / 800.0, 0.0, 1.0 - idx / 800.0, 0.0));
+    }
+}

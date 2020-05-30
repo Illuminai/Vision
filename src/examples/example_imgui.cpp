@@ -8,16 +8,9 @@
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_glfw.h"
 
-#include "core/shape/Sphere.h"
 
 GLFWwindow *window;
 ImGuiIO *imGuiIo;
-
-#include "core/render/Raytracer.h"
-#include "core/camera/PinholeCamera.h"
-
-Raytracer rt{std::make_shared<PinholeCamera>(Vector3d{-10, 0, 0})};
-
 
 void draw_screen();
 
@@ -84,24 +77,12 @@ void draw_screen() {
     {
         ImGui::Begin("Scene");
 
-        //ImGui::ListBox("", &listbox_item_current, nullptr, IM_ARRAYSIZE(rt.scene.shapes), 7);
-
-        ImGui::ListBoxHeader("");
-
-        for (auto shape : rt.scene.shapes) {
-            if (ImGui::Selectable("Shape", true)) {
-                std::cout << "Test" << std::endl;
-            }
-        }
-
-        ImGui::ListBoxFooter();
 
         ImGui::End();
     }
 
     {
         ImGui::Begin("Properties");
-        //ImGui::BulletText("Selected: %s", listbox_items[listbox_item_current]);
         ImGui::ColorEdit3("Color", color, 0);
         ImGui::End();
     }
@@ -139,10 +120,6 @@ void draw_screen() {
 }
 
 int main() {
-
-    rt.scene.shapes.push_back(std::make_shared<Sphere>(Vector3d{1, 1, 1}, .3));
-    rt.scene.shapes.push_back(std::make_shared<Sphere>(Vector3d{1, 2, 1}, .3));
-
     glfwSetErrorCallback(glfw_error_callback);
 
     if (!glfwInit()) {
