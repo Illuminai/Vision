@@ -11,5 +11,4 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 
 # Vulkan
 find_package(Vulkan REQUIRED)
-target_compile_definitions(${PROJECT_NAME} PRIVATE VK_USE_PLATFORM_WIN32_KHR)
 target_link_libraries(${PROJECT_NAME} PUBLIC Vulkan::Vulkan)

@@ -39,8 +39,7 @@ private:
 };
 
 #define VRC_LOAD_RESOURCE(RESOURCE) ([]() {                                           \
-    extern const char _vrc_resource_##RESOURCE[];                                   \
-    extern const size_t _vrc_resource_##RESOURCE##_len;                               \
+    extern const char _vrc_resource_##RESOURCE[]; extern const size_t _vrc_resource_##RESOURCE##_len;      \
     return VRC::VResource(_vrc_resource_##RESOURCE, _vrc_resource_##RESOURCE##_len);  \
 })()
 

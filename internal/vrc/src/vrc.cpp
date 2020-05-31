@@ -1,14 +1,17 @@
 #include <iostream>
-#include <filesystem>
 #include <fstream>
+#include <algorithm>
 
-std::string getFileIdentifier(const std::string &filename) {
-    std::string identifier = std::filesystem::path{filename}.filename().string();
-    std::replace(identifier.begin(), identifier.end(), '.', '_');
-    std::replace(identifier.begin(), identifier.end(), '-', '_');
-    std::replace(identifier.begin(), identifier.end(), '/', '_');
-    std::replace(identifier.begin(), identifier.end(), '\\', '_');
-    return identifier;
+std::string getFileIdentifier(std::string filename) {
+    const size_t last_slash_idx = filename.find_last_of("\\/");
+    if (std::string::npos != last_slash_idx) {
+        filename.erase(0, last_slash_idx + 1);
+    }
+    std::replace(filename.begin(), filename.end(), '.', '_');
+    std::replace(filename.begin(), filename.end(), '-', '_');
+    std::replace(filename.begin(), filename.end(), '/', '_');
+    std::replace(filename.begin(), filename.end(), '\\', '_');
+    return filename;
 }
 
 int main(int argc, char **argv) {
@@ -17,24 +20,25 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    std::fstream source{argv[1], std::ios::in};
-    std::fstream destination{argv[2], std::ios::out};
+    std::ifstream source{argv[1], std::ios::in | std::ios::binary};
+    std::ofstream destination{argv[2], std::ios::out};
 
     std::string identifier = getFileIdentifier(argv[1]);
 
     destination << "#include <stdlib.h>" << std::endl;
     destination << "const char _vrc_resource_" << identifier << "[] = {" << std::endl;
     size_t line = 0;
-    while (!source.eof()) {
+    while (true) {
         char c;
         source.get(c);
+        if (source.eof()) break;
         destination << "0x" << std::hex << (c & 0xff) << ", ";
-        if (++line == 10) {
+        if (++line == 16) {
             destination << std::endl;
             line = 0;
         }
     }
-    destination << "};" << std::endl << std::endl;
+    destination << "};" << std::endl;
 
     destination << "const size_t _vrc_resource_" << identifier << "_len = sizeof(_vrc_resource_" << identifier << ");";
 

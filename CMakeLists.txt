@@ -10,7 +10,7 @@ FILE(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 # Vision Resource Compiler
 add_subdirectory(internal/vrc)
 include_directories(internal/vrc/include)
-vrc_embed_spv(VRC_RESOURCES src/frontend/shaders/rt.comp)
+vrc_embed_spirv(VRC_RESOURCES src/frontend/shaders/rt.comp)
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${VRC_RESOURCES})
 

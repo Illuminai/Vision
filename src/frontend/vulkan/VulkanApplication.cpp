@@ -397,10 +397,9 @@ void VulkanApplication::prepareComputeForPipelineCreation() {
 
 
 void VulkanApplication::createComputePipeline() {
-    //auto computeShaderCode = readBinaryFile("shaders/comp.spv");
     auto computeShaderData = VRC_LOAD_RESOURCE(rt_comp_spv);
-    auto computeShaderCode = std::vector<char>(computeShaderData.data(),
-                                               computeShaderData.data() + computeShaderData.size());
+    auto computeShaderCode = std::vector<char>(computeShaderData.begin(), computeShaderData.end());
+
     VkShaderModule computeShaderModule;
     createShaderModule(computeShaderCode, computeShaderModule);
 
