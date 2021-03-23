@@ -7,10 +7,6 @@ include_directories("include")
 
 FILE(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 
-# Vision Resource Compiler
-# add_subdirectory(internal/vrc)
-# include_directories(internal/vrc/include)
-
 add_executable(${PROJECT_NAME} ${SOURCES} ${VRC_RESOURCES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -18,3 +14,4 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 # Dependency Management
 add_subdirectory(external)
+add_subdirectory(assets)
