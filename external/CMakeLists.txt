@@ -8,7 +8,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         glfw
         imgui
         imgui_impl
-        implot)
+        implot
+        )
 
 # Vulkan
 find_package(Vulkan REQUIRED)
