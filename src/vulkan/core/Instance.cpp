@@ -1,5 +1,6 @@
 #include "vulkan/core/Instance.h"
 
+#include "vulkan/utils/ErrorCheck.h"
 #include "vulkan/utils/VkInitializer.h"
 
 namespace vulkan {
@@ -57,9 +58,7 @@ namespace vulkan {
             createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT *) &debugCreateInfo;
         }
 
-        if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to create Vulkan instance!");
-        }
+        checkError(vkCreateInstance(&createInfo, nullptr, &instance), "Instance creation");
 
         if (!layers.empty()) {
             debugMessenger = DebugMessenger{instance};

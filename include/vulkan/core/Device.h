@@ -7,26 +7,41 @@
 
 namespace vulkan {
     class Device;
+
+    class QueueFamily;
 }
 
-//TODO
 class vulkan::Device {
 public:
-    Device(VkInstance instance, VkPhysicalDevice physicalDevice);
+    Device(VkInstance instance, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface,
+           const std::vector<std::tuple<const char *, bool>> &requiredExtensions);
+
+    void destroy();
 
     VkPhysicalDevice getPhysicalDevice();
 
     VkDevice getVkDevice();
 
 private:
-    VkDevice vkDevice;
+    VkDevice vkDevice{VK_NULL_HANDLE};
 
-    VkPhysicalDevice physicalDevice;
+    VkPhysicalDevice vkPhysicalDevice;
+
+    std::vector<QueueFamily> queueFamilies;
+
+    VkQueue graphicsQueue;
+    VkQueue presentQueue;
+    VkQueue computeQueue;
+    VkQueue transferQueue;
+
+    static std::vector<QueueFamily> findQueueFamilies(VkPhysicalDevice physicalDevice);
+
+};
 
 
-    //static QueueFamilyIndices
-    //findQueueFamilies(VkInstance &instance, Surface &surface, VkPhysicalDevice physicalDevice);
-
+struct vulkan::QueueFamily {
+    uint32_t index;
+    VkQueueFamilyProperties properties;
 };
 
 

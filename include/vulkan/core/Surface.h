@@ -13,16 +13,14 @@ namespace vulkan {
 
 class vulkan::Surface {
 public:
-    Surface(const std::shared_ptr<Instance> &instance, GLFWwindow *window);
+    Surface(VkInstance instance, GLFWwindow *window);
 
-    ~Surface();
+    void destroy(VkInstance instance);
 
     VkSurfaceKHR getVkSurface();
 
 private:
     VkSurfaceKHR surface{VK_NULL_HANDLE};
-
-    std::shared_ptr<Instance> instance;
 
 };
 

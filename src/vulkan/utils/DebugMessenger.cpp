@@ -2,14 +2,14 @@
 
 #include <iostream>
 #include "vulkan/utils/VkInitializer.h"
+#include "vulkan/utils/ErrorCheck.h"
 
 namespace vulkan {
 
     DebugMessenger::DebugMessenger(VkInstance instance) {
         auto createInfo = getCreateInfo();
-        if (createDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to create debug utils messenger");
-        }
+        checkError(createDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger),
+                   "Debug messenger creation");
     }
 
     void DebugMessenger::destroy(VkInstance instance) {
@@ -52,9 +52,10 @@ namespace vulkan {
 
     VkDebugUtilsMessengerCreateInfoEXT DebugMessenger::getCreateInfo() {
         auto createInfo = VkInitializer::createDebugUtilsMessengerCreateInfoEXT();
-        createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT  /* Too many messages, pls stop */
-                                     | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
-                                     | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+        createInfo.messageSeverity = //VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT  /* Too many messages, pls stop */
+                //|
+                VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
+                | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
         createInfo.messageType =
                 VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
                 | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT

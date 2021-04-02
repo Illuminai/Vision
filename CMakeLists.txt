@@ -10,12 +10,15 @@ include_directories("include")
 
 add_executable(${PROJECT_NAME}
         src/main.cpp
+        src/vulkan/core/SharedContext.cpp
         src/vulkan/core/Instance.cpp
-        src/vulkan/utils/DebugMessenger.cpp
-        src/vulkan/core/PhysicalDevice.cpp
         src/vulkan/core/Surface.cpp
-
-        src/vulkan/core/Device.cpp)
+        src/vulkan/core/PhysicalDevice.cpp
+        src/vulkan/core/Device.cpp
+        src/vulkan/utils/DebugMessenger.cpp
+        src/vulkan/utils/ErrorCheck.cpp
+        #TODO:
+        src/vulkan/core/Context.cpp)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)

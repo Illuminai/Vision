@@ -1,41 +1,49 @@
 #include "vulkan/core/Instance.h"
 #include "vulkan/core/PhysicalDevice.h"
+#include "vulkan/core/Context.h"
 #include <iostream>
 
 int main() {
 
-    const std::vector<const char *> validationLayers = {
-            "VK_LAYER_KHRONOS_validation"
-    };
-
-    const std::vector<std::tuple<const char *, bool>> instanceExtensions = {
-            std::make_tuple(VK_KHR_SURFACE_EXTENSION_NAME, false),
-            //std::make_tuple("OOGA", false), Extension not optional and not available
-            std::make_tuple("OOF", true)
-    };
-
     try {
-        vulkan::Instance instance{instanceExtensions, validationLayers};
 
-        auto gpus = vulkan::PhysicalDevice::enumeratePhysicalDevices(instance.getVkInstance());
-
-        for (auto gpu : gpus) {
-            VkPhysicalDeviceProperties prop;
-            vkGetPhysicalDeviceProperties(gpu, &prop);
-            std::cout << "GPU Name: " << prop.deviceName << std::endl;
+        //INIT GLFW
+        if (!glfwInit()) {
+            throw std::runtime_error("Failed to initialize GLFW!");
         }
 
-        auto gpu = gpus.front();
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-        uint32_t extensionCount = 0;
-        vkEnumerateDeviceExtensionProperties(gpu, nullptr, &extensionCount, nullptr);
-        std::vector<VkExtensionProperties> extensions(extensionCount);
-        vkEnumerateDeviceExtensionProperties(gpu, nullptr, &extensionCount, extensions.data());
+        GLFWwindow *window = glfwCreateWindow(800, 600, "Vulkan", nullptr, nullptr);
 
-        std::cout << "Extensions: " << std::endl;
-        for(auto extension : extensions) {
-            std::cout << "Extension: " << extension.extensionName << std::endl;
+        if (!glfwVulkanSupported()) {
+            throw std::runtime_error("Vulkan not supported!");
         }
+
+        // INIT VULKAN
+        std::vector<std::tuple<const char *, bool>> instanceExtensions = {
+                //std::make_tuple("TESTTEST", false), Extension not optional and not available. will crash.
+                std::make_tuple("OOF", true) // Extension optional
+        };
+        const std::vector<const char *> validationLayers = {
+                "VK_LAYER_KHRONOS_validation"
+        };
+
+        const std::vector<std::tuple<const char *, bool>> deviceExtensions = {
+                std::make_tuple(VK_KHR_SWAPCHAIN_EXTENSION_NAME, false),
+                //std::make_tuple("TESTTEST", false), Extension not optional and not available. will crash.
+                std::make_tuple("OOF", true) // Extension optional
+        };
+
+        vulkan::Context context{instanceExtensions, validationLayers, deviceExtensions, window};
+
+        // LOOP WINDOW
+        while (!glfwWindowShouldClose(window)) {
+            glfwPollEvents();
+
+            //DRAW ETC
+        }
+
 
 
 
