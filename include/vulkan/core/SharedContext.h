@@ -17,6 +17,12 @@ public:
 
     ~SharedContext();
 
+    Instance getInstance();
+
+    std::optional<Surface> getSurface();
+
+    Device getDevice();
+
 private:
     Instance instance;
     std::optional<Surface> surface;

@@ -1,4 +1,4 @@
-#include "vulkan/utils/ErrorCheck.h"
+#include "vulkan/debug/ErrorCheck.h"
 
 namespace vulkan {
 

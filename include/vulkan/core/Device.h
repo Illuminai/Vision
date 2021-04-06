@@ -18,21 +18,41 @@ public:
 
     void destroy();
 
-    VkPhysicalDevice getPhysicalDevice();
+    std::optional<QueueFamily> findQueueFamily(VkQueueFlagBits flags);
+
+    VkPhysicalDevice getVkPhysicalDevice();
 
     VkDevice getVkDevice();
+
+    VkQueue getGraphicsQueue();
+
+    uint32_t getGraphicsQueueFamily();
+
+    VkQueue getPresentQueue();
+
+    uint32_t getPresentQueueFamily();
+
+    VkQueue getComputeQueue();
+
+    uint32_t getComputeQueueFamily();
+
+    VkQueue getTransferQueue();
+
+    uint32_t getTransferQueueFamily();
+
+    std::vector<QueueFamily> getQueueFamilies();
 
 private:
     VkDevice vkDevice{VK_NULL_HANDLE};
 
-    VkPhysicalDevice vkPhysicalDevice;
+    VkPhysicalDevice vkPhysicalDevice{VK_NULL_HANDLE};
 
     std::vector<QueueFamily> queueFamilies;
 
-    VkQueue graphicsQueue;
-    VkQueue presentQueue;
-    VkQueue computeQueue;
-    VkQueue transferQueue;
+    std::tuple<VkQueue, uint32_t> graphicsQueue{VK_NULL_HANDLE, 0};
+    std::tuple<VkQueue, uint32_t> presentQueue{VK_NULL_HANDLE, 0};
+    std::tuple<VkQueue, uint32_t> computeQueue{VK_NULL_HANDLE, 0};
+    std::tuple<VkQueue, uint32_t> transferQueue{VK_NULL_HANDLE, 0};
 
     static std::vector<QueueFamily> findQueueFamilies(VkPhysicalDevice physicalDevice);
 

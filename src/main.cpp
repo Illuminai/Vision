@@ -1,6 +1,7 @@
 #include "vulkan/core/Instance.h"
 #include "vulkan/core/PhysicalDevice.h"
 #include "vulkan/core/Context.h"
+#include "vulkan/core/Swapchain.h"
 #include <iostream>
 
 int main() {
@@ -35,7 +36,13 @@ int main() {
                 std::make_tuple("OOF", true) // Extension optional
         };
 
-        vulkan::Context context{instanceExtensions, validationLayers, deviceExtensions, window};
+        std::shared_ptr<vulkan::Context> context = std::make_shared<vulkan::Context>(instanceExtensions,
+                                                                                     validationLayers, deviceExtensions,
+                                                                                     window);
+
+        uint32_t dim[2] = {1,1};
+        vulkan::Swapchain swapchain{context, dim};
+
 
         // LOOP WINDOW
         while (!glfwWindowShouldClose(window)) {
@@ -43,8 +50,6 @@ int main() {
 
             //DRAW ETC
         }
-
-
 
 
     } catch (const std::exception &ex) {

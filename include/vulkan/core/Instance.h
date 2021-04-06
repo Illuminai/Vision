@@ -3,7 +3,7 @@
 
 #include <vulkan/vulkan.hpp>
 #include <optional>
-#include <vulkan/utils/DebugMessenger.h>
+#include <vulkan/debug/DebugMessenger.h>
 
 namespace vulkan {
     class Instance;

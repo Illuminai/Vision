@@ -15,10 +15,19 @@ add_executable(${PROJECT_NAME}
         src/vulkan/core/Surface.cpp
         src/vulkan/core/PhysicalDevice.cpp
         src/vulkan/core/Device.cpp
-        src/vulkan/utils/DebugMessenger.cpp
-        src/vulkan/utils/ErrorCheck.cpp
-        #TODO:
-        src/vulkan/core/Context.cpp)
+        src/vulkan/debug/DebugMessenger.cpp
+        src/vulkan/debug/ErrorCheck.cpp
+        src/vulkan/core/CommandPool.cpp
+        src/vulkan/core/Context.cpp
+
+        #TODO: Vulkan
+        src/vulkan/core/Swapchain.cpp
+
+        #TODO: Windowing
+        #src/windowing/WindowManager.cpp
+        #src/windowing/VulkanWindow.cpp
+        )
+
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)

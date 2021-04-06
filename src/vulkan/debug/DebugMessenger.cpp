@@ -1,8 +1,7 @@
-#include "vulkan/utils/DebugMessenger.h"
+#include "vulkan/debug/DebugMessenger.h"
 
 #include <iostream>
-#include "vulkan/utils/VkInitializer.h"
-#include "vulkan/utils/ErrorCheck.h"
+#include "vulkan/debug/ErrorCheck.h"
 
 namespace vulkan {
 
@@ -51,7 +50,8 @@ namespace vulkan {
     }
 
     VkDebugUtilsMessengerCreateInfoEXT DebugMessenger::getCreateInfo() {
-        auto createInfo = VkInitializer::createDebugUtilsMessengerCreateInfoEXT();
+        VkDebugUtilsMessengerCreateInfoEXT createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
         createInfo.messageSeverity = //VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT  /* Too many messages, pls stop */
                 //|
                 VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT

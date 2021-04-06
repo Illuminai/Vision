@@ -1,6 +1,5 @@
 #include "vulkan/core/Surface.h"
-#include "vulkan/utils/ErrorCheck.h"
-#include <stdexcept>
+#include "vulkan/debug/ErrorCheck.h"
 
 namespace vulkan {
 
@@ -17,6 +16,5 @@ namespace vulkan {
     VkSurfaceKHR Surface::getVkSurface() {
         return surface;
     }
-
 
 }

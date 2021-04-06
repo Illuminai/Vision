@@ -1,13 +1,14 @@
 #include "vulkan/core/Device.h"
 
-#include "vulkan/utils/ErrorCheck.h"
+#include "vulkan/debug/ErrorCheck.h"
 
 namespace vulkan {
 
     Device::Device(VkInstance instance,
                    VkPhysicalDevice physicalDevice,
                    VkSurfaceKHR surface,
-                   const std::vector<std::tuple<const char *, bool>> &requiredExtensions) {
+                   const std::vector<std::tuple<const char *, bool>> &requiredExtensions) : vkPhysicalDevice(
+            physicalDevice) {
         // ARE EXTENSIONS SUPPORTED?
         std::vector<const char *> extensions;
         for (auto tuple : requiredExtensions) {
@@ -62,26 +63,40 @@ namespace vulkan {
         checkError(vkCreateDevice(physicalDevice, &createInfo, nullptr, &vkDevice), "Device creation");
 
         for (auto index : queueFamilies) {
-            if (!graphicsQueue && index.properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-                vkGetDeviceQueue(vkDevice, index.index, 0, &graphicsQueue);
-            } else if (!computeQueue && index.properties.queueFlags & VK_QUEUE_COMPUTE_BIT) {
-                vkGetDeviceQueue(vkDevice, index.index, 0, &computeQueue);
-            } else if (!transferQueue && index.properties.queueFlags & VK_QUEUE_TRANSFER_BIT) {
-                vkGetDeviceQueue(vkDevice, index.index, 0, &transferQueue);
+            if (!std::get<0>(graphicsQueue) && index.properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+                vkGetDeviceQueue(vkDevice, index.index, 0, &std::get<0>(graphicsQueue));
+                std::get<1>(graphicsQueue) = index.index;
+            } else if (!std::get<0>(computeQueue) && index.properties.queueFlags & VK_QUEUE_COMPUTE_BIT) {
+                vkGetDeviceQueue(vkDevice, index.index, 0, &std::get<0>(computeQueue));
+                std::get<1>(computeQueue) = index.index;
+            } else if (!std::get<0>(transferQueue) && index.properties.queueFlags & VK_QUEUE_TRANSFER_BIT) {
+                vkGetDeviceQueue(vkDevice, index.index, 0, &std::get<0>(transferQueue));
+                std::get<1>(transferQueue) = index.index;
             }
         }
         for (auto index : queueFamilies) {
             VkBool32 presentSupport = VK_FALSE;
             vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, index.index, surface, &presentSupport);
             if (presentSupport) {
-                vkGetDeviceQueue(vkDevice, index.index, 0, &presentQueue);
+                vkGetDeviceQueue(vkDevice, index.index, 0, &std::get<0>(presentQueue));
+                std::get<1>(presentQueue) = index.index;
                 break;
             }
         }
 
     }
 
-    VkPhysicalDevice Device::getPhysicalDevice() {
+
+    std::optional<QueueFamily> Device::findQueueFamily(VkQueueFlagBits flags) {
+        for (auto queueFamily : queueFamilies) {
+            if (queueFamily.properties.queueFlags & flags) {
+                return queueFamily;
+            }
+        }
+        return {};
+    }
+
+    VkPhysicalDevice Device::getVkPhysicalDevice() {
         return vkPhysicalDevice;
     }
 
@@ -112,6 +127,42 @@ namespace vulkan {
         }
 
         return indices;
+    }
+
+    VkQueue Device::getGraphicsQueue() {
+        return std::get<0>(graphicsQueue);
+    }
+
+    uint32_t Device::getGraphicsQueueFamily() {
+        return std::get<1>(graphicsQueue);
+    }
+
+    VkQueue Device::getPresentQueue() {
+        return std::get<0>(presentQueue);
+    }
+
+    uint32_t Device::getPresentQueueFamily() {
+        return std::get<1>(presentQueue);
+    }
+
+    VkQueue Device::getComputeQueue() {
+        return std::get<0>(computeQueue);
+    }
+
+    uint32_t Device::getComputeQueueFamily() {
+        return std::get<1>(computeQueue);
+    }
+
+    VkQueue Device::getTransferQueue() {
+        return std::get<0>(transferQueue);
+    }
+
+    uint32_t Device::getTransferQueueFamily() {
+        return std::get<1>(transferQueue);
+    }
+
+    std::vector<QueueFamily> Device::getQueueFamilies() {
+        return queueFamilies;
     }
 
 

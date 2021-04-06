@@ -50,6 +50,17 @@ namespace vulkan {
         return Device{instance.getVkInstance(), gpu, surface.getVkSurface(), deviceExtensions};
     }
 
+    Instance SharedContext::getInstance() {
+        return instance;
+    }
+
+    std::optional<Surface> SharedContext::getSurface() {
+        return surface;
+    }
+
+    Device SharedContext::getDevice() {
+        return device;
+    }
 
 }
 

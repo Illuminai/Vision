@@ -1,18 +1,23 @@
 #include "vulkan/core/Instance.h"
 
-#include "vulkan/utils/ErrorCheck.h"
-#include "vulkan/utils/VkInitializer.h"
+#include "vulkan/debug/ErrorCheck.h"
 
 namespace vulkan {
 
     Instance::Instance(std::vector<std::tuple<const char *, bool>> requiredExtensions,
                        std::vector<const char *> validationLayers) {
 
-        auto appInfo = VkInitializer::createApplicationInfo("Vision",
-                                                            VK_MAKE_VERSION(1, 0, 0),
-                                                            VK_API_VERSION_1_0);
+        VkApplicationInfo appInfo{};
+        appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+        appInfo.pApplicationName = "Vision";
+        appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+        appInfo.pEngineName = "Vision Engine";
+        appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+        appInfo.apiVersion = VK_API_VERSION_1_0;
 
-        auto createInfo = VkInitializer::createInstanceCreateInfo(appInfo);
+        VkInstanceCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+        createInfo.pApplicationInfo = &appInfo;
 
         bool enableDebug = false;
         if (!validationLayers.empty() && isExtensionAvailable(VK_EXT_DEBUG_UTILS_EXTENSION_NAME)) {
