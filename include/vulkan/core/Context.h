@@ -44,7 +44,6 @@ public:
 private:
     std::shared_ptr<SharedContext> sharedContext;
 
-    std::optional<CommandPool> generalCommandPool;
     std::optional<CommandPool> transientCommandPool;
 
     VkCommandBuffer beginTransientExecution();

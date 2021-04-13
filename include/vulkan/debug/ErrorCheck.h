@@ -4,7 +4,6 @@
 #include <vulkan/vulkan.hpp>
 
 namespace vulkan {
-
     const char *getErrorCode(VkResult result);
 
     void checkError(VkResult result, const char *operation);

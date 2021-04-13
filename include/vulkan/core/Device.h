@@ -13,7 +13,7 @@ namespace vulkan {
 
 class vulkan::Device {
 public:
-    Device(VkInstance instance, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface,
+    Device(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface,
            const std::vector<std::tuple<const char *, bool>> &requiredExtensions);
 
     void destroy();

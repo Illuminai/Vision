@@ -3,8 +3,8 @@
 
 #define GLFW_INCLUDE_VULKAN
 
-#include <GLFW/glfw3.h>
 #include <memory>
+#include <GLFW/glfw3.h>
 #include "vulkan/core/Instance.h"
 
 namespace vulkan {

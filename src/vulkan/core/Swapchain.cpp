@@ -2,18 +2,65 @@
 
 namespace vulkan {
 
-    Swapchain::Swapchain(std::shared_ptr<Context> context, uint32_t preferredDimensions[2]) : context(context) {
+    Swapchain::Swapchain(std::shared_ptr<Context> context, uint32_t preferredDimensions[2])
+            : context(context) {
         if (!context->getSurface().has_value()) {
             throw std::runtime_error("Can't create swap chain without surface");
         }
         SwapchainSupportDetails details{context->getDevice().getVkPhysicalDevice(),
                                         context->getSurface()->getVkSurface()};
 
+        surfaceCapabilities = details.getCapabilities();
         format = details.getOptimalSurfaceFormat();
         presentMode = details.getOptimalPresentMode();
         extent = details.getOptimalExtent(preferredDimensions);
         imageCount = details.getOptimalImageCount();
 
+        createSwapchain();
+    }
+
+    Swapchain::~Swapchain() {
+        destroy();
+    }
+
+    std::vector<VkFramebuffer> Swapchain::createFramebuffers(VkRenderPass renderPass) {
+        std::vector<VkFramebuffer> framebuffers(imageViews.size());
+        for (size_t i = 0; i < imageViews.size(); i++) {
+            VkImageView attachments[] = {imageViews[i]};
+
+            VkFramebufferCreateInfo framebufferInfo{};
+            framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            framebufferInfo.renderPass = renderPass;
+            framebufferInfo.attachmentCount = 1;
+            framebufferInfo.pAttachments = attachments;
+            framebufferInfo.width = extent.width;
+            framebufferInfo.height = extent.height;
+            framebufferInfo.layers = 1;
+
+            checkError(vkCreateFramebuffer(context->getDevice().getVkDevice(), &framebufferInfo, nullptr,
+                                           &framebuffers[i]),
+                       "Swapchain framebuffer creation");
+        }
+
+        return framebuffers;
+    }
+
+    void Swapchain::rebuild() {
+        destroy();
+        createSwapchain();
+    }
+
+    void Swapchain::destroy() {
+        for (auto imageView : imageViews) {
+            vkDestroyImageView(context->getDevice().getVkDevice(), imageView, nullptr);
+        }
+        imageViews.clear();
+        if (swapchain) {
+            vkDestroySwapchainKHR(context->getDevice().getVkDevice(), swapchain, nullptr);
+        }
+    }
+
+    void Swapchain::createSwapchain() {
         VkSwapchainCreateInfoKHR createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
         createInfo.surface = context->getSurface()->getVkSurface();
@@ -35,7 +82,7 @@ namespace vulkan {
             createInfo.queueFamilyIndexCount = 0; // Optional
             createInfo.pQueueFamilyIndices = nullptr; // Optional
         }
-        createInfo.preTransform = details.getCapabilities().currentTransform;
+        createInfo.preTransform = surfaceCapabilities.currentTransform;
         createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
         createInfo.presentMode = presentMode;
         createInfo.clipped = VK_TRUE;
@@ -44,12 +91,10 @@ namespace vulkan {
         checkError(vkCreateSwapchainKHR(context->getDevice().getVkDevice(), &createInfo, nullptr, &swapchain),
                    "Swapchain creation");
 
-        // ACQUIRE IMAGES
         vkGetSwapchainImagesKHR(context->getDevice().getVkDevice(), swapchain, &imageCount, nullptr);
         images.resize(imageCount);
         vkGetSwapchainImagesKHR(context->getDevice().getVkDevice(), swapchain, &imageCount, images.data());
 
-        //CREATE IMAGE VIEWS
         imageViews.resize(images.size());
 
         for (size_t i = 0; i < images.size(); i++) {
@@ -71,15 +116,6 @@ namespace vulkan {
                                          &imageViews[i]),
                        "Swapchain image view creation");
         }
-
-
-    }
-
-    Swapchain::~Swapchain() {
-        for (auto imageView : imageViews) {
-            vkDestroyImageView(context->getDevice().getVkDevice(), imageView, nullptr);
-        }
-        vkDestroySwapchainKHR(context->getDevice().getVkDevice(), swapchain, nullptr);
     }
 
 }
@@ -106,7 +142,7 @@ namespace vulkan {
 
     VkSurfaceFormatKHR SwapchainSupportDetails::getOptimalSurfaceFormat() {
         for (auto format : formats) {
-            if (format.format == VK_FORMAT_B8G8R8A8_SRGB && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+            if (format.format == VK_FORMAT_B8G8R8A8_UNORM && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
                 return format;
             }
         }
@@ -115,7 +151,7 @@ namespace vulkan {
 
     VkPresentModeKHR SwapchainSupportDetails::getOptimalPresentMode() {
         for (const auto &presentMode : presentModes) {
-            if (presentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+            if (presentMode == VK_PRESENT_MODE_FIFO_RELAXED_KHR) {
                 return presentMode;
             }
         }

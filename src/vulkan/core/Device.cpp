@@ -4,12 +4,11 @@
 
 namespace vulkan {
 
-    Device::Device(VkInstance instance,
-                   VkPhysicalDevice physicalDevice,
+    Device::Device(VkPhysicalDevice physicalDevice,
                    VkSurfaceKHR surface,
                    const std::vector<std::tuple<const char *, bool>> &requiredExtensions) : vkPhysicalDevice(
             physicalDevice) {
-        // ARE EXTENSIONS SUPPORTED?
+
         std::vector<const char *> extensions;
         for (auto tuple : requiredExtensions) {
             bool available = vulkan::PhysicalDevice::isExtensionAvailable(physicalDevice, std::get<0>(tuple));
@@ -24,8 +23,6 @@ namespace vulkan {
             }
         }
 
-
-        // INIT QUEUE FAMILIES
         queueFamilies = findQueueFamilies(physicalDevice);
         std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
         float queuePriority = 1.0f;
@@ -41,7 +38,6 @@ namespace vulkan {
             queueCreateInfos.push_back(queueCreateInfo);
         }
 
-        //CREATE DEVICE
         VkPhysicalDeviceFeatures deviceFeatures{};
         deviceFeatures.fillModeNonSolid = VK_TRUE;
         deviceFeatures.samplerAnisotropy = VK_TRUE;
@@ -164,6 +160,5 @@ namespace vulkan {
     std::vector<QueueFamily> Device::getQueueFamilies() {
         return queueFamilies;
     }
-
 
 }

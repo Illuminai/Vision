@@ -11,7 +11,8 @@ namespace vulkan {
 
 class vulkan::Instance {
 public:
-    Instance(std::vector<std::tuple<const char *, bool>> requiredExtensions, std::vector<const char *> validationLayers);
+    Instance(std::vector<std::tuple<const char *, bool>> requiredExtensions,
+             std::vector<const char *> validationLayers);
 
     void destroy();
 

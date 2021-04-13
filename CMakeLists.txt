@@ -9,6 +9,7 @@ include_directories("include")
 #add_executable(${PROJECT_NAME} ${SOURCES})
 
 add_executable(${PROJECT_NAME}
+        # perfectly done
         src/main.cpp
         src/vulkan/core/SharedContext.cpp
         src/vulkan/core/Instance.cpp
@@ -19,13 +20,15 @@ add_executable(${PROJECT_NAME}
         src/vulkan/debug/ErrorCheck.cpp
         src/vulkan/core/CommandPool.cpp
         src/vulkan/core/Context.cpp
+        src/vulkan/core/InFlightFrames.cpp
 
         #TODO: Vulkan
         src/vulkan/core/Swapchain.cpp
+        #src/vulkan/core/ShaderModule.cpp
 
         #TODO: Windowing
-        #src/windowing/WindowManager.cpp
         #src/windowing/VulkanWindow.cpp
+        src/windowing/ImGuiWindow.cpp
         )
 
 

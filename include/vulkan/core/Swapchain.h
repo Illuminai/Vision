@@ -10,26 +10,37 @@ namespace vulkan {
     class SwapchainSupportDetails;
 }
 
-
+//TODO: Custom Swapchain
 class vulkan::Swapchain {
 public:
     Swapchain(std::shared_ptr<Context> context, uint32_t preferredDimensions[2]);
 
     ~Swapchain();
 
-private:
-    std::shared_ptr<Context> context;
+    std::vector<VkFramebuffer> createFramebuffers(VkRenderPass renderPass);
+
+
+    void rebuild();
+
+    void destroy();
 
     VkSwapchainKHR swapchain{VK_NULL_HANDLE};
 
-    std::vector<VkImage> images;
-    std::vector<VkImageView> imageViews;
-    std::vector<VkFramebuffer> framebuffer;
+    VkSurfaceCapabilitiesKHR surfaceCapabilities;
 
     VkSurfaceFormatKHR format;
     VkPresentModeKHR presentMode;
     VkExtent2D extent;
     uint32_t imageCount;
+
+    std::vector<VkImageView> imageViews;
+
+private:
+    std::shared_ptr<Context> context;
+
+    std::vector<VkImage> images;
+
+    void createSwapchain();
 
 };
 

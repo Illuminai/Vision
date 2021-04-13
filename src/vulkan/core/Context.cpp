@@ -12,8 +12,6 @@ namespace vulkan {
 
         auto queueFamily = sharedContext->getDevice().findQueueFamily(VK_QUEUE_GRAPHICS_BIT);
         if (queueFamily.has_value()) {
-            generalCommandPool = CommandPool{sharedContext->getDevice().getVkDevice(),
-                                             queueFamily->index};
             transientCommandPool = CommandPool{sharedContext->getDevice().getVkDevice(),
                                                queueFamily->index, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT};
         }
@@ -22,8 +20,6 @@ namespace vulkan {
     Context::Context(std::shared_ptr<SharedContext> sharedContext) : sharedContext(std::move(sharedContext)) {
         auto queueFamily = sharedContext->getDevice().findQueueFamily(VK_QUEUE_GRAPHICS_BIT);
         if (queueFamily.has_value()) {
-            generalCommandPool = CommandPool{sharedContext->getDevice().getVkDevice(),
-                                             queueFamily->index};
             transientCommandPool = CommandPool{sharedContext->getDevice().getVkDevice(),
                                                queueFamily->index, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT};
         }
@@ -31,7 +27,6 @@ namespace vulkan {
     }
 
     Context::~Context() {
-        vkDestroyCommandPool(sharedContext->getDevice().getVkDevice(), generalCommandPool->getVkCommandPool(), nullptr);
         vkDestroyCommandPool(sharedContext->getDevice().getVkDevice(), transientCommandPool->getVkCommandPool(),
                              nullptr);
     }

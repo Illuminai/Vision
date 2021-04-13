@@ -47,7 +47,7 @@ namespace vulkan {
                                        std::vector<std::tuple<const char *, bool>> deviceExtensions) {
         auto gpu = PhysicalDevice::enumeratePhysicalDevices(instance.getVkInstance()).front();
         deviceExtensions.emplace_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME, false);
-        return Device{instance.getVkInstance(), gpu, surface.getVkSurface(), deviceExtensions};
+        return Device{gpu, surface.getVkSurface(), deviceExtensions};
     }
 
     Instance SharedContext::getInstance() {
