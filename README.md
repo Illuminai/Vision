@@ -18,7 +18,7 @@ Vision is a 3d modelling application with a physically based renderer built with
       <br/>
     </td>
     <td align="center">
-        <a href="https://github.com/wolkenwalker">
+        <a href="https://github.com/mikailgedik">
           <img src="https://avatars3.githubusercontent.com/u/52047490" width="100px;" alt="Mikail Gedik"/>
           <br/>
           <sub>
