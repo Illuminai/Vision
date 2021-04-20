@@ -8,6 +8,7 @@ Index of this file:
 // [SECTION] Commentary
 // [SECTION] Header mess
 // [SECTION] Tables: Main code
+// [SECTION] Tables: Simple accessors
 // [SECTION] Tables: Row changes
 // [SECTION] Tables: Columns changes
 // [SECTION] Tables: Columns width management
@@ -234,6 +235,19 @@ Index of this file:
 
 //-----------------------------------------------------------------------------
 // [SECTION] Tables: Main code
+//-----------------------------------------------------------------------------
+// - TableFixFlags() [Internal]
+// - TableFindByID() [Internal]
+// - BeginTable()
+// - BeginTableEx() [Internal]
+// - TableBeginInitMemory() [Internal]
+// - TableBeginApplyRequests() [Internal]
+// - TableSetupColumnFlags() [Internal]
+// - TableUpdateLayout() [Internal]
+// - TableUpdateBorders() [Internal]
+// - EndTable()
+// - TableSetupColumn()
+// - TableSetupScrollFreeze()
 //-----------------------------------------------------------------------------
 
 // Configuration
@@ -1430,6 +1444,20 @@ void ImGui::TableSetupScrollFreeze(int columns, int rows)
     table->IsUnfrozenRows = (table->FreezeRowsCount == 0); // Make sure this is set before TableUpdateLayout() so ImGuiListClipper can benefit from it.b
 }
 
+//-----------------------------------------------------------------------------
+// [SECTION] Tables: Simple accessors
+//-----------------------------------------------------------------------------
+// - TableGetColumnCount()
+// - TableGetColumnName()
+// - TableGetColumnName() [Internal]
+// - TableSetColumnEnabled() [Internal]
+// - TableGetColumnFlags()
+// - TableGetCellBgRect() [Internal]
+// - TableGetColumnResizeID() [Internal]
+// - TableGetHoveredColumn() [Internal]
+// - TableSetBgColor()
+//-----------------------------------------------------------------------------
+
 int ImGui::TableGetColumnCount()
 {
     ImGuiContext& g = *GImGui;
@@ -1458,6 +1486,9 @@ const char* ImGui::TableGetColumnName(const ImGuiTable* table, int column_n)
     return &table->ColumnsNames.Buf[column->NameOffset];
 }
 
+// Request enabling/disabling a column (often perceived as "showing/hiding" from users point of view)
+// Note that end-user can use the context menu to change this themselves (right-click in headers, or right-click in columns body with ImGuiTableFlags_ContextMenuInBody)
+// Request will be applied during next layout, which happens on the first call to TableNextRow() after BeginTable()
 // For the getter you can use (TableGetColumnFlags() & ImGuiTableColumnFlags_IsEnabled)
 void ImGui::TableSetColumnEnabled(int column_n, bool enabled)
 {
@@ -1534,33 +1565,33 @@ void ImGui::TableSetBgColor(ImGuiTableBgTarget target, ImU32 color, int column_n
     // We cannot draw neither the cell or row background immediately as we don't know the row height at this point in time.
     switch (target)
     {
-    case ImGuiTableBgTarget_CellBg:
-    {
-        if (table->RowPosY1 > table->InnerClipRect.Max.y) // Discard
-            return;
-        if (column_n == -1)
-            column_n = table->CurrentColumn;
-        if ((table->VisibleMaskByIndex & ((ImU64)1 << column_n)) == 0)
-            return;
-        if (table->RowCellDataCurrent < 0 || table->RowCellData[table->RowCellDataCurrent].Column != column_n)
-            table->RowCellDataCurrent++;
-        ImGuiTableCellData* cell_data = &table->RowCellData[table->RowCellDataCurrent];
-        cell_data->BgColor = color;
-        cell_data->Column = (ImGuiTableColumnIdx)column_n;
-        break;
-    }
-    case ImGuiTableBgTarget_RowBg0:
-    case ImGuiTableBgTarget_RowBg1:
-    {
-        if (table->RowPosY1 > table->InnerClipRect.Max.y) // Discard
-            return;
-        IM_ASSERT(column_n == -1);
-        int bg_idx = (target == ImGuiTableBgTarget_RowBg1) ? 1 : 0;
-        table->RowBgColor[bg_idx] = color;
-        break;
-    }
-    default:
-        IM_ASSERT(0);
+        case ImGuiTableBgTarget_CellBg:
+        {
+            if (table->RowPosY1 > table->InnerClipRect.Max.y) // Discard
+                return;
+            if (column_n == -1)
+                column_n = table->CurrentColumn;
+            if ((table->VisibleMaskByIndex & ((ImU64)1 << column_n)) == 0)
+                return;
+            if (table->RowCellDataCurrent < 0 || table->RowCellData[table->RowCellDataCurrent].Column != column_n)
+                table->RowCellDataCurrent++;
+            ImGuiTableCellData* cell_data = &table->RowCellData[table->RowCellDataCurrent];
+            cell_data->BgColor = color;
+            cell_data->Column = (ImGuiTableColumnIdx)column_n;
+            break;
+        }
+        case ImGuiTableBgTarget_RowBg0:
+        case ImGuiTableBgTarget_RowBg1:
+        {
+            if (table->RowPosY1 > table->InnerClipRect.Max.y) // Discard
+                return;
+            IM_ASSERT(column_n == -1);
+            int bg_idx = (target == ImGuiTableBgTarget_RowBg1) ? 1 : 0;
+            table->RowBgColor[bg_idx] = color;
+            break;
+        }
+        default:
+            IM_ASSERT(0);
     }
 }
 
@@ -2673,18 +2704,19 @@ void ImGui::TableSortSpecsBuild(ImGuiTable* table)
     // Write output
     table->SortSpecsMulti.resize(table->SortSpecsCount <= 1 ? 0 : table->SortSpecsCount);
     ImGuiTableColumnSortSpecs* sort_specs = (table->SortSpecsCount == 0) ? NULL : (table->SortSpecsCount == 1) ? &table->SortSpecsSingle : table->SortSpecsMulti.Data;
-    for (int column_n = 0; column_n < table->ColumnsCount; column_n++)
-    {
-        ImGuiTableColumn* column = &table->Columns[column_n];
-        if (column->SortOrder == -1)
-            continue;
-        IM_ASSERT(column->SortOrder < table->SortSpecsCount);
-        ImGuiTableColumnSortSpecs* sort_spec = &sort_specs[column->SortOrder];
-        sort_spec->ColumnUserID = column->UserID;
-        sort_spec->ColumnIndex = (ImGuiTableColumnIdx)column_n;
-        sort_spec->SortOrder = (ImGuiTableColumnIdx)column->SortOrder;
-        sort_spec->SortDirection = column->SortDirection;
-    }
+    if (sort_specs != NULL)
+        for (int column_n = 0; column_n < table->ColumnsCount; column_n++)
+        {
+            ImGuiTableColumn* column = &table->Columns[column_n];
+            if (column->SortOrder == -1)
+                continue;
+            IM_ASSERT(column->SortOrder < table->SortSpecsCount);
+            ImGuiTableColumnSortSpecs* sort_spec = &sort_specs[column->SortOrder];
+            sort_spec->ColumnUserID = column->UserID;
+            sort_spec->ColumnIndex = (ImGuiTableColumnIdx)column_n;
+            sort_spec->SortOrder = (ImGuiTableColumnIdx)column->SortOrder;
+            sort_spec->SortDirection = column->SortDirection;
+        }
     table->SortSpecs.Specs = sort_specs;
     table->SortSpecs.SpecsCount = table->SortSpecsCount;
     table->SortSpecs.SpecsDirty = true; // Mark as dirty for user
@@ -3446,21 +3478,21 @@ void ImGui::DebugNodeTable(ImGuiTable* table)
         ImGuiTableColumn* column = &table->Columns[n];
         const char* name = TableGetColumnName(table, n);
         ImFormatString(buf, IM_ARRAYSIZE(buf),
-            "Column %d order %d '%s': offset %+.2f to %+.2f%s\n"
-            "Enabled: %d, VisibleX/Y: %d/%d, RequestOutput: %d, SkipItems: %d, DrawChannels: %d,%d\n"
-            "WidthGiven: %.1f, Request/Auto: %.1f/%.1f, StretchWeight: %.3f (%.1f%%)\n"
-            "MinX: %.1f, MaxX: %.1f (%+.1f), ClipRect: %.1f to %.1f (+%.1f)\n"
-            "ContentWidth: %.1f,%.1f, HeadersUsed/Ideal %.1f/%.1f\n"
-            "Sort: %d%s, UserID: 0x%08X, Flags: 0x%04X: %s%s%s..",
-            n, column->DisplayOrder, name, column->MinX - table->WorkRect.Min.x, column->MaxX - table->WorkRect.Min.x, (n < table->FreezeColumnsRequest) ? " (Frozen)" : "",
-            column->IsEnabled, column->IsVisibleX, column->IsVisibleY, column->IsRequestOutput, column->IsSkipItems, column->DrawChannelFrozen, column->DrawChannelUnfrozen,
-            column->WidthGiven, column->WidthRequest, column->WidthAuto, column->StretchWeight, column->StretchWeight > 0.0f ? (column->StretchWeight / sum_weights) * 100.0f : 0.0f,
-            column->MinX, column->MaxX, column->MaxX - column->MinX, column->ClipRect.Min.x, column->ClipRect.Max.x, column->ClipRect.Max.x - column->ClipRect.Min.x,
-            column->ContentMaxXFrozen - column->WorkMinX, column->ContentMaxXUnfrozen - column->WorkMinX, column->ContentMaxXHeadersUsed - column->WorkMinX, column->ContentMaxXHeadersIdeal - column->WorkMinX,
-            column->SortOrder, (column->SortDirection == ImGuiSortDirection_Ascending) ? " (Asc)" : (column->SortDirection == ImGuiSortDirection_Descending) ? " (Des)" : "", column->UserID, column->Flags,
-            (column->Flags & ImGuiTableColumnFlags_WidthStretch) ? "WidthStretch " : "",
-            (column->Flags & ImGuiTableColumnFlags_WidthFixed) ? "WidthFixed " : "",
-            (column->Flags & ImGuiTableColumnFlags_NoResize) ? "NoResize " : "");
+                       "Column %d order %d '%s': offset %+.2f to %+.2f%s\n"
+                       "Enabled: %d, VisibleX/Y: %d/%d, RequestOutput: %d, SkipItems: %d, DrawChannels: %d,%d\n"
+                       "WidthGiven: %.1f, Request/Auto: %.1f/%.1f, StretchWeight: %.3f (%.1f%%)\n"
+                       "MinX: %.1f, MaxX: %.1f (%+.1f), ClipRect: %.1f to %.1f (+%.1f)\n"
+                       "ContentWidth: %.1f,%.1f, HeadersUsed/Ideal %.1f/%.1f\n"
+                       "Sort: %d%s, UserID: 0x%08X, Flags: 0x%04X: %s%s%s..",
+                       n, column->DisplayOrder, name, column->MinX - table->WorkRect.Min.x, column->MaxX - table->WorkRect.Min.x, (n < table->FreezeColumnsRequest) ? " (Frozen)" : "",
+                       column->IsEnabled, column->IsVisibleX, column->IsVisibleY, column->IsRequestOutput, column->IsSkipItems, column->DrawChannelFrozen, column->DrawChannelUnfrozen,
+                       column->WidthGiven, column->WidthRequest, column->WidthAuto, column->StretchWeight, column->StretchWeight > 0.0f ? (column->StretchWeight / sum_weights) * 100.0f : 0.0f,
+                       column->MinX, column->MaxX, column->MaxX - column->MinX, column->ClipRect.Min.x, column->ClipRect.Max.x, column->ClipRect.Max.x - column->ClipRect.Min.x,
+                       column->ContentMaxXFrozen - column->WorkMinX, column->ContentMaxXUnfrozen - column->WorkMinX, column->ContentMaxXHeadersUsed - column->WorkMinX, column->ContentMaxXHeadersIdeal - column->WorkMinX,
+                       column->SortOrder, (column->SortDirection == ImGuiSortDirection_Ascending) ? " (Asc)" : (column->SortDirection == ImGuiSortDirection_Descending) ? " (Des)" : "", column->UserID, column->Flags,
+                       (column->Flags & ImGuiTableColumnFlags_WidthStretch) ? "WidthStretch " : "",
+                       (column->Flags & ImGuiTableColumnFlags_WidthFixed) ? "WidthFixed " : "",
+                       (column->Flags & ImGuiTableColumnFlags_NoResize) ? "NoResize " : "");
         Bullet();
         Selectable(buf);
         if (IsItemHovered())
@@ -3487,9 +3519,9 @@ void ImGui::DebugNodeTableSettings(ImGuiTableSettings* settings)
         ImGuiTableColumnSettings* column_settings = &settings->GetColumnSettings()[n];
         ImGuiSortDirection sort_dir = (column_settings->SortOrder != -1) ? (ImGuiSortDirection)column_settings->SortDirection : ImGuiSortDirection_None;
         BulletText("Column %d Order %d SortOrder %d %s Vis %d %s %7.3f UserID 0x%08X",
-            n, column_settings->DisplayOrder, column_settings->SortOrder,
-            (sort_dir == ImGuiSortDirection_Ascending) ? "Asc" : (sort_dir == ImGuiSortDirection_Descending) ? "Des" : "---",
-            column_settings->IsEnabled, column_settings->IsStretch ? "Weight" : "Width ", column_settings->WidthOrWeight, column_settings->UserID);
+                   n, column_settings->DisplayOrder, column_settings->SortOrder,
+                   (sort_dir == ImGuiSortDirection_Ascending) ? "Asc" : (sort_dir == ImGuiSortDirection_Descending) ? "Des" : "---",
+                   column_settings->IsEnabled, column_settings->IsStretch ? "Weight" : "Width ", column_settings->WidthOrWeight, column_settings->UserID);
     }
     TreePop();
 }

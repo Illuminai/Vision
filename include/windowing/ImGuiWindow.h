@@ -15,43 +15,43 @@
 #include "vulkan/core/Context.h"
 #include "vulkan/core/Swapchain.h"
 #include "vulkan/core/InFlightFrames.h"
+#include "windowing/VulkanWindow.h"
 
 namespace windowing {
     class ImGuiWindow;
 }
 
-class windowing::ImGuiWindow {
+class windowing::ImGuiWindow : public VulkanWindow {
 public:
     ImGuiWindow();
 
     ~ImGuiWindow();
 
-    //TODO
-    //ImGui window should be an abstract class. Implement onRenderUI for displaying ImGui UI.
-    //virtual void onRenderUI() = 0;
+    virtual void onImGuiFrameRender() = 0;
 
-    void renderImGui();
+    void renderImGuiFrame(vulkan::SyncObject syncObject, uint32_t imageIndex, ImDrawData *draw_data);
 
-    void loopWindow();
+    void onRender(vulkan::SyncObject syncObject, uint32_t imageIndex) override;
+
+    void onSwapchainRebuild() override;
 
 private:
-    GLFWwindow *window;
-
-    std::shared_ptr<vulkan::Context> context;
-
-    bool rebuildSwapchain{false};
 
     ImGuiContext *imguiContext;
 
     ImGui_ImplVulkanH_Window imguiWindowData;
 
+    std::vector<VkFramebuffer> framebuffers;
+
     VkDescriptorPool descriptorPool{VK_NULL_HANDLE};
 
-    static void framebufferSizeCallback(GLFWwindow *window, int width, int height);
+    VkRenderPass renderPass{VK_NULL_HANDLE};
 
-    void renderFrame(ImDrawData *draw_data);
+    void createRenderPass();
 
-    void presentFrame();
+    static void framebufferSizeCallback(GLFWwindow *window, int width, int height) {
+        static_cast<VulkanWindow*>(glfwGetWindowUserPointer(window))->renderWindow();
+    }
 
 };
 

@@ -5,9 +5,8 @@
 
 namespace vulkan {
 
-    DebugMessenger::DebugMessenger(VkInstance instance) {
-        auto createInfo = getCreateInfo();
-        checkError(createDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger),
+    DebugMessenger::DebugMessenger(VkInstance instance, VkDebugUtilsMessengerCreateInfoEXT *createInfo) {
+        checkError(createDebugUtilsMessengerEXT(instance, createInfo, nullptr, &debugMessenger),
                    "Debug messenger creation");
     }
 

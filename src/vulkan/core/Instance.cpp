@@ -60,13 +60,11 @@ namespace vulkan {
 
         if (!layers.empty()) {
             auto debugCreateInfo = DebugMessenger::getCreateInfo();
-            createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT *) &debugCreateInfo;
-        }
-
-        checkError(vkCreateInstance(&createInfo, nullptr, &instance), "Instance creation");
-
-        if (!layers.empty()) {
-            debugMessenger = DebugMessenger{instance};
+            createInfo.pNext = &debugCreateInfo;
+            checkError(vkCreateInstance(&createInfo, nullptr, &instance), "Instance creation");
+            debugMessenger = DebugMessenger{instance, &debugCreateInfo};
+        }else{
+            checkError(vkCreateInstance(&createInfo, nullptr, &instance), "Instance creation");
         }
 
     }

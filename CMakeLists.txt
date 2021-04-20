@@ -22,13 +22,18 @@ add_executable(${PROJECT_NAME}
         src/vulkan/core/Context.cpp
         src/vulkan/core/InFlightFrames.cpp
 
+        src/windowing/WindowManager.cpp
+
         #TODO: Vulkan
         src/vulkan/core/Swapchain.cpp
         #src/vulkan/core/ShaderModule.cpp
 
         #TODO: Windowing
-        #src/windowing/VulkanWindow.cpp
+        src/windowing/VulkanWindow.cpp
         src/windowing/ImGuiWindow.cpp
+
+        #TODO: Example
+        src/example/ImGuiExampleWindow.cpp
         )
 
 

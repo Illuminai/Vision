@@ -45,8 +45,11 @@ namespace vulkan {
         return framebuffers;
     }
 
-    void Swapchain::rebuild() {
+    void Swapchain::rebuild(uint32_t preferredDimensions[2]) {
         destroy();
+        SwapchainSupportDetails details{context->getDevice().getVkPhysicalDevice(),
+                                        context->getSurface()->getVkSurface()};
+        extent = details.getOptimalExtent(preferredDimensions);
         createSwapchain();
     }
 

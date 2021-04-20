@@ -9,7 +9,7 @@ namespace vulkan {
 
 class vulkan::DebugMessenger {
 public:
-    explicit DebugMessenger(VkInstance instance);
+    DebugMessenger(VkInstance instance, VkDebugUtilsMessengerCreateInfoEXT *createInfo);
 
     void destroy(VkInstance instance);
 

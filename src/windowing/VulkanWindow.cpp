@@ -21,6 +21,14 @@ namespace windowing {
                 //std::make_tuple("TESTTEST", false), Extension not optional and not available. will crash.
                 std::make_tuple("OOF", true) // Extension optional
         };
+
+        uint32_t extensions_count = 0;
+        const char **extensions = glfwGetRequiredInstanceExtensions(&extensions_count);
+        std::vector<const char *> glfwExtensions(extensions, extensions + extensions_count);
+        for (auto ex : glfwExtensions) {
+            instanceExtensions.emplace_back(ex, false);
+        }
+
         const std::vector<const char *> validationLayers = {
                 "VK_LAYER_KHRONOS_validation"
         };
@@ -42,27 +50,30 @@ namespace windowing {
         swapchain = std::make_unique<vulkan::Swapchain>(context, windowSize);
 
         inFlightFrames = std::make_unique<vulkan::InFlightFrames>(context, 2);
+
+        imagesInFlight.resize(swapchain->imageCount, VK_NULL_HANDLE);
+
+        for (int i = 0; i < swapchain->imageCount; ++i) {
+            commandPools.emplace_back(vulkan::CommandPool{context->getDevice().getVkDevice(),
+                                                          context->getDevice().getGraphicsQueueFamily()});
+        }
+
+        commandBuffers.resize(swapchain->imageCount);
+        for (int i = 0; i < swapchain->imageCount; ++i) {
+            VkCommandBufferAllocateInfo info = {};
+            info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+            info.commandPool = commandPools[i].getVkCommandPool();
+            info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+            info.commandBufferCount = 1;
+            vulkan::checkError(vkAllocateCommandBuffers(context->getDevice().getVkDevice(),
+                                                        &info, &commandBuffers[i]),
+                               "Command buffer allocation");
+        }
     }
 
     VulkanWindow::~VulkanWindow() {
+        vkDeviceWaitIdle(context->getDevice().getVkDevice());
         glfwDestroyWindow(window);
-        //glfwTerminate();
-    }
-
-    void VulkanWindow::loopWindow() {
-        while (!glfwWindowShouldClose(window)) {
-            glfwPollEvents();
-
-            if (rebuildSwapchain) {
-                onSwapchainRebuild();
-                rebuildSwapchain = false;
-            }
-
-            auto syncObject = inFlightFrames->nextSyncObject();
-            uint32_t imageIndex = acquireNextImage(syncObject);
-            onRender(syncObject, imageIndex);
-            presentFrame(syncObject, imageIndex);
-        }
     }
 
     uint32_t VulkanWindow::acquireNextImage(vulkan::SyncObject syncObject) {
@@ -86,30 +97,6 @@ namespace windowing {
     }
 
     void VulkanWindow::presentFrame(vulkan::SyncObject syncObject, uint32_t imageIndex) {
-        /*
-
-        VkSubmitInfo submitInfo{};
-        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-        VkSemaphore waitSemaphores[] = {syncObject.imageAvailableSemaphore};
-        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-        submitInfo.waitSemaphoreCount = 1;
-        submitInfo.pWaitSemaphores = waitSemaphores;
-        submitInfo.pWaitDstStageMask = waitStages;
-
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
-
-        VkSemaphore signalSemaphores[] = {syncObject.renderFinishedSemaphore};
-        submitInfo.signalSemaphoreCount = 1;
-        submitInfo.pSignalSemaphores = signalSemaphores;
-
-        vkResetFences(context->getDevice().getVkDevice(), 1, &syncObject.fence);
-
-        if (vkQueueSubmit(context->getDevice().getGraphicsQueue(), 1, &submitInfo, syncObject.fence) != VK_SUCCESS) {
-            throw std::runtime_error("failed to submit draw command buffer!");
-        }*/
-
         VkPresentInfoKHR presentInfo{};
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
@@ -133,28 +120,32 @@ namespace windowing {
         }
     }
 
+    void VulkanWindow::renderWindow() {
+        if (rebuildSwapchain) {
+            recreateSwapchain();
+        }
+
+        auto syncObject = inFlightFrames->nextSyncObject();
+        uint32_t imageIndex = acquireNextImage(syncObject);
+        onRender(syncObject, imageIndex);
+        presentFrame(syncObject, imageIndex);
+    }
+
     void VulkanWindow::recreateSwapchain() {
         int width = 0, height = 0;
         glfwGetFramebufferSize(window, &width, &height);
-        while (width == 0 || height == 0) {
-            glfwGetFramebufferSize(window, &width, &height);
-            glfwWaitEvents();
+        if (width != 0 && height != 0) {
+            vkDeviceWaitIdle(context->getDevice().getVkDevice());
+
+            uint32_t dim[2] = {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
+            swapchain->rebuild(dim);
+
+            imagesInFlight.resize(swapchain->imageCount, VK_NULL_HANDLE);
+
+            onSwapchainRebuild();
+
+            rebuildSwapchain = false;
         }
-
-        vkDeviceWaitIdle(context->getDevice().getVkDevice());
-
-        swapchain->rebuild();
-
-        //framebuffers = swapchain->createFramebuffers();
-
-        //createRenderPass();
-        //createGraphicsPipeline();
-        //createFramebuffers();
-        //createCommandBuffers();
-
-        imagesInFlight.resize(swapchain->imageCount, VK_NULL_HANDLE);
-
     }
-
 
 }
