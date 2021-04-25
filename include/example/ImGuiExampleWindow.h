@@ -5,11 +5,9 @@
 
 class ImGuiExampleWindow : public windowing::ImGuiWindow {
 public:
+    ImGuiExampleWindow();
+
     void onImGuiFrameRender() override;
-
-private:
-
-
 
 };
 

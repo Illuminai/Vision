@@ -4,18 +4,10 @@
 namespace windowing {
 
 
-    VulkanWindow::VulkanWindow() {
-        if (!glfwInit()) {
-            throw std::runtime_error("Failed to initialize GLFW");
-        }
-
+    VulkanWindow::VulkanWindow() : BaseWindow(getRequiredWindowHints()) {
         if (!glfwVulkanSupported()) {
             throw std::runtime_error("Vulkan not supported!");
         }
-
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
-        window = glfwCreateWindow(800, 600, "Vulkan", nullptr, nullptr);
 
         std::vector<std::tuple<const char *, bool>> instanceExtensions = {
                 //std::make_tuple("TESTTEST", false), Extension not optional and not available. will crash.
@@ -76,17 +68,17 @@ namespace windowing {
         glfwDestroyWindow(window);
     }
 
-    uint32_t VulkanWindow::acquireNextImage(vulkan::SyncObject syncObject) {
+    std::optional<uint32_t> VulkanWindow::acquireNextImage(vulkan::SyncObject syncObject) {
         vkWaitForFences(context->getDevice().getVkDevice(), 1, &syncObject.fence, VK_TRUE, UINT64_MAX);
         uint32_t imageIndex;
         VkResult result = vkAcquireNextImageKHR(context->getDevice().getVkDevice(), swapchain->swapchain,
                                                 UINT64_MAX, syncObject.imageAvailableSemaphore, VK_NULL_HANDLE,
                                                 &imageIndex);
-        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-            recreateSwapchain();
-            return -1;
-        } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-            throw std::runtime_error("failed to acquire swap chain image!");
+        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+            rebuildSwapchain = true;
+            return std::nullopt;
+        } else if (result != VK_SUCCESS) {
+            vulkan::checkError(result, "Swap chain image acquisition");
         }
 
         if (imagesInFlight[imageIndex] != VK_NULL_HANDLE) {
@@ -114,21 +106,23 @@ namespace windowing {
 
         if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || rebuildSwapchain) {
             rebuildSwapchain = false;
-            recreateSwapchain();
         } else if (result != VK_SUCCESS) {
-            throw std::runtime_error("failed to present swap chain image!");
+            vulkan::checkError(result, "Swap chain image presentation");
         }
     }
 
-    void VulkanWindow::renderWindow() {
+    void VulkanWindow::onWindowRender() {
         if (rebuildSwapchain) {
             recreateSwapchain();
+            return;
         }
 
         auto syncObject = inFlightFrames->nextSyncObject();
-        uint32_t imageIndex = acquireNextImage(syncObject);
-        onRender(syncObject, imageIndex);
-        presentFrame(syncObject, imageIndex);
+        std::optional<uint32_t> imageIndex = acquireNextImage(syncObject);
+        if (imageIndex.has_value()) {
+            onRender(syncObject, imageIndex.value());
+            presentFrame(syncObject, imageIndex.value());
+        }
     }
 
     void VulkanWindow::recreateSwapchain() {
@@ -146,6 +140,12 @@ namespace windowing {
 
             rebuildSwapchain = false;
         }
+    }
+
+    std::vector<std::tuple<int, int>> VulkanWindow::getRequiredWindowHints() {
+        std::vector<std::tuple<int, int>> hints;
+        hints.emplace_back(GLFW_CLIENT_API, GLFW_NO_API);
+        return hints;
     }
 
 }

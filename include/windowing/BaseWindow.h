@@ -10,8 +10,24 @@ namespace windowing {
 
 class windowing::BaseWindow {
 public:
+    BaseWindow(const std::vector<std::tuple<int, int>> &windowHints) {
+        glfwDefaultWindowHints();
+        glfwWindowHint(GLFW_VISIBLE, false);
+        for (auto hint : windowHints) {
+            glfwWindowHint(std::get<0>(hint), std::get<1>(hint));
+        }
+        window = glfwCreateWindow(1920, 1080, "Vulkan", nullptr, nullptr);
+    }
 
-    virtual void renderWindow() = 0;
+    virtual void onWindowRender() = 0;
+
+    void renderWindow() {
+        if (firstRender) {
+            glfwShowWindow(window);
+            firstRender = false;
+        }
+        onWindowRender();
+    }
 
     GLFWwindow *getWindow() {
         return window;
@@ -19,6 +35,8 @@ public:
 
 protected:
     GLFWwindow *window;
+
+    bool firstRender{true};
 
 };
 

@@ -36,10 +36,7 @@ public:
     void onSwapchainRebuild() override;
 
 private:
-
     ImGuiContext *imguiContext;
-
-    ImGui_ImplVulkanH_Window imguiWindowData;
 
     std::vector<VkFramebuffer> framebuffers;
 
@@ -50,7 +47,7 @@ private:
     void createRenderPass();
 
     static void framebufferSizeCallback(GLFWwindow *window, int width, int height) {
-        static_cast<VulkanWindow*>(glfwGetWindowUserPointer(window))->renderWindow();
+        static_cast<VulkanWindow *>(glfwGetWindowUserPointer(window))->renderWindow();
     }
 
 };

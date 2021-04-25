@@ -2,3 +2,7 @@
 	path = external/glfw
 	url = https://github.com/Illuminai/glfw
 	branch = master
+[submodule "external/cmrc"]
+	path = external/cmrc
+	url = https://github.com/Illuminai/cmrc
+	branch = master

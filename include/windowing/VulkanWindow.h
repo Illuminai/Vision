@@ -21,25 +21,17 @@ public:
 
     ~VulkanWindow();
 
-
-    // Functions to implement in child class
-
     virtual void onRender(vulkan::SyncObject syncObject, uint32_t imageIndex) = 0;
 
     virtual void onSwapchainRebuild() = 0;
 
-    // Internal
-
-    //void renderImGuiFrame(vulkan::SyncObject syncObject, uint32_t imageIndex, ImDrawData* draw_data);
-
-
-    virtual uint32_t acquireNextImage(vulkan::SyncObject syncObject);
+    std::optional<uint32_t> acquireNextImage(vulkan::SyncObject syncObject);
 
     void presentFrame(vulkan::SyncObject syncObject, uint32_t imageIndex);
 
     void recreateSwapchain();
 
-    void renderWindow() override;
+    void onWindowRender() override;
 
 protected:
     std::shared_ptr<vulkan::Context> context;
@@ -56,6 +48,8 @@ protected:
 
     bool rebuildSwapchain{false};
 
+private:
+    static std::vector<std::tuple<int, int>> getRequiredWindowHints();
 
 };
 

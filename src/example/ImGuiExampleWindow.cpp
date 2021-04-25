@@ -1,7 +1,24 @@
 #include "example/ImGuiExampleWindow.h"
 
-void ImGuiExampleWindow::onImGuiFrameRender() {
+#define STB_IMAGE_IMPLEMENTATION
 
+#include "stb_image.h"
+#include <cmrc/cmrc.hpp>
+
+CMRC_DECLARE(icons);
+
+ImGuiExampleWindow::ImGuiExampleWindow() {
+    auto fs = cmrc::icons::get_filesystem();
+    auto img = fs.open("icons/sphere.png");
+
+    GLFWimage images[1];
+    images[0].pixels = stbi_load_from_memory(reinterpret_cast<const stbi_uc *>(img.begin()), img.size(),
+                                             &images[0].width, &images[0].height, 0, 4);
+    glfwSetWindowIcon(window, 1, images);
+    stbi_image_free(images[0].pixels);
+}
+
+void ImGuiExampleWindow::onImGuiFrameRender() {
     ImGuiViewport *viewport = ImGui::GetMainViewport();
 
     ImGui::SetNextWindowPos(viewport->WorkPos);
@@ -15,7 +32,6 @@ void ImGuiExampleWindow::onImGuiFrameRender() {
                            | ImGuiWindowFlags_NoBringToFrontOnFocus
                            | ImGuiWindowFlags_NoBackground
                            | ImGuiWindowFlags_NoTitleBar;
-
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
@@ -49,27 +65,45 @@ void ImGuiExampleWindow::onImGuiFrameRender() {
     ImGui::End();
 
 
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
+            if (ImGui::MenuItem("Settings")) {
+            }
             if (ImGui::MenuItem("Exit")) {
                 exit(0);
             }
             ImGui::EndMenu();
         }
+        if (ImGui::BeginMenu("Edit")) {
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Window")) {
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Help")) {
+            ImGui::EndMenu();
+        }
+
         ImGui::EndMainMenuBar();
     }
+
 
     ImGuiWindowFlags statusBarFlags = ImGuiWindowFlags_NoScrollbar
                                       | ImGuiWindowFlags_NoSavedSettings
                                       | ImGuiWindowFlags_MenuBar;
-    float height = ImGui::GetFrameHeight();
-    if (ImGui::BeginViewportSideBar("##SecondaryMenuBar", viewport, ImGuiDir_Up, height, statusBarFlags)) {
+    if (ImGui::BeginViewportSideBar("##SecondaryMenuBar", viewport, ImGuiDir_Up, ImGui::GetFrameHeight(),
+                                    statusBarFlags)) {
         if (ImGui::BeginMenuBar()) {
             ImGui::Text("Happy secondary menu bar");
+            ImGui::SameLine();
+            ImGui::Button("Hello");
             ImGui::EndMenuBar();
         }
         ImGui::End();
     }
+
+    ImGui::PopStyleVar();
 
     ImGui::Begin("Left", nullptr, 0);
     ImGui::Text("Left Pane");
@@ -87,20 +121,15 @@ void ImGuiExampleWindow::onImGuiFrameRender() {
     ImGui::Text("Bottom Pane");
     ImGui::End();
 
-
-    //ImVec2 pos = ImGui::GetIO().MousePos;
-    //ImDrawList *draw_list = ImGui::GetOverlayDrawList();
-    //draw_list->AddCircleFilled(pos, 130, ImColor(255, 255, 255));
-
-    //draw_list->AddCircleFilled(pos, 100, ImColor(0,0,0));
-
     ImGui::ShowDemoWindow();
 
-    if (ImGui::BeginViewportSideBar("##StatusBar", viewport, ImGuiDir_Down, height, statusBarFlags)) {
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+    if (ImGui::BeginViewportSideBar("##StatusBar", viewport, ImGuiDir_Down, ImGui::GetFrameHeight(), statusBarFlags)) {
         if (ImGui::BeginMenuBar()) {
             ImGui::Text("Happy status bar");
             ImGui::EndMenuBar();
         }
         ImGui::End();
     }
+    ImGui::PopStyleVar();
 }

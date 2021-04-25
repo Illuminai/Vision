@@ -4,8 +4,6 @@
 namespace windowing {
 
     ImGuiWindow::ImGuiWindow() {
-
-        // CREATE DESCRIPTOR POOLS
         VkDescriptorPoolSize pool_sizes[] = {
                 {VK_DESCRIPTOR_TYPE_SAMPLER,                1000},
                 {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
@@ -30,25 +28,20 @@ namespace windowing {
                                        &pool_info, nullptr, &descriptorPool),
                 "ImGui descriptor pool creation");
 
-        // CREATE CONTEXT
         imguiContext = ImGui::CreateContext();
         ImGui::SetCurrentContext(imguiContext);
 
         ImGui::StyleColorsDark();
 
         ImGuiIO &io = ImGui::GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
-        //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+        io.WantSaveIniSettings = false;
 
-        // CREATE RENDER PASS
         createRenderPass();
 
-        // FRAMEBUFFERS
         framebuffers = swapchain->createFramebuffers(renderPass);
 
-        // INIT
         ImGui_ImplGlfw_InitForVulkan(window, true);
         ImGui_ImplVulkan_InitInfo init_info = {};
         init_info.Instance = context->getInstance().getVkInstance();
@@ -64,8 +57,9 @@ namespace windowing {
 
 
         // UPLOAD FONTS
-        ImFont* font2 = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Verdana.ttf", 13.0f);
-
+#ifdef _WIN32
+        ImFont *font2 = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Verdana.ttf", 13.0f);
+#endif
         context->executeTransient([](VkCommandBuffer commandBuffer) {
             return ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
         });
@@ -73,12 +67,9 @@ namespace windowing {
 
         glfwSetWindowUserPointer(window, this);
         glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
-
     }
 
-    ImGuiWindow::~ImGuiWindow() {
-
-    }
+    ImGuiWindow::~ImGuiWindow() = default;
 
     void ImGuiWindow::createRenderPass() {
         vkDestroyRenderPass(context->getDevice().getVkDevice(), renderPass, nullptr);
@@ -146,14 +137,14 @@ namespace windowing {
     void ImGuiWindow::renderImGuiFrame(vulkan::SyncObject syncObject, uint32_t imageIndex, ImDrawData *draw_data) {
         vulkan::checkError(vkResetCommandPool(context->getDevice().getVkDevice(),
                                               commandPools[imageIndex].getVkCommandPool(), 0),
-                           "d");
+                           "Command buffer reset");
 
         VkCommandBufferBeginInfo commandBufferBeginInfo = {};
         commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         commandBufferBeginInfo.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
         vulkan::checkError(vkBeginCommandBuffer(commandBuffers[imageIndex],
                                                 &commandBufferBeginInfo),
-                           "f");
+                           "Command buffer begin");
 
         VkRenderPassBeginInfo renderPassBeginInfo = {};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -180,11 +171,11 @@ namespace windowing {
         info.pSignalSemaphores = &syncObject.renderFinishedSemaphore;
 
         vulkan::checkError(vkEndCommandBuffer(commandBuffers[imageIndex]),
-                           "g");
+                           "Command buffer end");
 
         vkResetFences(context->getDevice().getVkDevice(), 1, &syncObject.fence);
 
         vulkan::checkError(vkQueueSubmit(context->getDevice().getGraphicsQueue(), 1, &info, syncObject.fence),
-                           "h");
+                           "Queue submit");
     }
 }
