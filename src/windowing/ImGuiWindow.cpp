@@ -55,21 +55,24 @@ namespace windowing {
         init_info.CheckVkResultFn = [](VkResult result) { vulkan::checkError(result, "Internal ImGui operation"); };
         ImGui_ImplVulkan_Init(&init_info, renderPass);
 
-
-        // UPLOAD FONTS
-#ifdef _WIN32
-        ImFont *font2 = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Verdana.ttf", 13.0f);
-#endif
         context->executeTransient([](VkCommandBuffer commandBuffer) {
             return ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
         });
         ImGui_ImplVulkan_DestroyFontUploadObjects();
-
-        glfwSetWindowUserPointer(window, this);
-        glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
     }
 
-    ImGuiWindow::~ImGuiWindow() = default;
+    ImGuiWindow::~ImGuiWindow() {
+        vkDeviceWaitIdle(context->getDevice().getVkDevice());
+        ImGui_ImplVulkan_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+
+        for (auto framebuffer : framebuffers) {
+            vkDestroyFramebuffer(context->getDevice().getVkDevice(), framebuffer, nullptr);
+        }
+
+        vkDestroyRenderPass(context->getDevice().getVkDevice(), renderPass, nullptr);
+        vkDestroyDescriptorPool(context->getDevice().getVkDevice(), descriptorPool, nullptr);
+    }
 
     void ImGuiWindow::createRenderPass() {
         vkDestroyRenderPass(context->getDevice().getVkDevice(), renderPass, nullptr);
@@ -131,6 +134,9 @@ namespace windowing {
 
     void ImGuiWindow::onSwapchainRebuild() {
         createRenderPass();
+        for (auto framebuffer : framebuffers) {
+            vkDestroyFramebuffer(context->getDevice().getVkDevice(), framebuffer, nullptr);
+        }
         framebuffers = swapchain->createFramebuffers(renderPass);
     }
 

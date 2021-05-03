@@ -19,7 +19,6 @@ public:
 
     std::vector<VkFramebuffer> createFramebuffers(VkRenderPass renderPass);
 
-
     void rebuild(uint32_t preferredDimensions[2]);
 
     void destroy();

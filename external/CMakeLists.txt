@@ -1,3 +1,5 @@
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+
 add_subdirectory(cmrc)
 add_subdirectory(glfw)
 add_subdirectory(freetype)
@@ -18,3 +20,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 # Vulkan
 find_package(Vulkan REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC Vulkan::Vulkan)
+
+find_package(Shaderc REQUIRED)
+target_link_libraries(${PROJECT_NAME} PUBLIC Shaderc::Shaderc)

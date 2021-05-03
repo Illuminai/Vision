@@ -22,7 +22,8 @@ namespace windowing {
         }
 
         const std::vector<const char *> validationLayers = {
-                "VK_LAYER_KHRONOS_validation"
+                "VK_LAYER_KHRONOS_validation",
+                "VK_LAYER_LUNARG_standard_validation"
         };
 
         const std::vector<std::tuple<const char *, bool>> deviceExtensions = {
@@ -61,10 +62,20 @@ namespace windowing {
                                                         &info, &commandBuffers[i]),
                                "Command buffer allocation");
         }
+
+        glfwSetWindowUserPointer(window, this);
+        glfwSetFramebufferSizeCallback(window, [](GLFWwindow *window, int, int) {
+            ((VulkanWindow *) glfwGetWindowUserPointer(window))->onWindowRender();
+        });
     }
 
     VulkanWindow::~VulkanWindow() {
         vkDeviceWaitIdle(context->getDevice().getVkDevice());
+
+        for (auto commandPool : commandPools) {
+            commandPool.destroy(context->getDevice().getVkDevice());
+        }
+
         glfwDestroyWindow(window);
     }
 

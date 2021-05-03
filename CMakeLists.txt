@@ -21,20 +21,20 @@ add_executable(${PROJECT_NAME}
         src/vulkan/core/CommandPool.cpp
         src/vulkan/core/Context.cpp
         src/vulkan/core/InFlightFrames.cpp
+        src/vulkan/core/Swapchain.cpp
 
-        src/windowing/WindowManager.cpp
 
         #TODO: Vulkan
-        src/vulkan/core/Swapchain.cpp
-        #src/vulkan/core/ShaderModule.cpp
+        src/vulkan/shader/ShaderModule.cpp
 
         #TODO: Windowing
+        src/windowing/WindowManager.cpp
         src/windowing/VulkanWindow.cpp
         src/windowing/ImGuiWindow.cpp
 
         #TODO: Example
         src/example/ImGuiExampleWindow.cpp
-        )
+        src/example/RaytracingExampleWindow.cpp)
 
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
