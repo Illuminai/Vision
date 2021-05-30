@@ -84,4 +84,8 @@ namespace vulkan {
         return sharedContext->getDevice();
     }
 
+    VmaAllocator Context::getAllocator() {
+        return sharedContext->getAllocator();
+    }
+
 }

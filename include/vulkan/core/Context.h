@@ -41,6 +41,8 @@ public:
 
     Device getDevice();
 
+    VmaAllocator getAllocator();
+
 private:
     std::shared_ptr<SharedContext> sharedContext;
 

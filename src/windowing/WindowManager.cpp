@@ -42,6 +42,8 @@ namespace windowing {
 
     void WindowManager::loopManager() {
         while (running && (!windows.empty())) {
+            //ImGuiWaitEvents update?
+            //glfwWaitEvents();
             glfwPollEvents();
 
             windows.erase(std::remove_if(windows.begin(), windows.end(), [](const std::shared_ptr<BaseWindow> &window) {

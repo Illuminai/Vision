@@ -2,6 +2,10 @@
 
 #include <utility>
 
+#define VMA_IMPLEMENTATION
+
+#include "vk_mem_alloc.h"
+
 namespace vulkan {
 
     SharedContext::SharedContext(const std::vector<std::tuple<const char *, bool>> &instanceExtensions,
@@ -10,9 +14,16 @@ namespace vulkan {
                                  GLFWwindow *window) :
             instance(createInstance(instanceExtensions, validationLayers, true)),
             surface(createSurface(instance, window)),
-            device(createDevice(instance, surface.value(), std::move(deviceExtensions))) {}
+            device(createDevice(instance, surface.value(), std::move(deviceExtensions))) {
+        VmaAllocatorCreateInfo allocatorCreateInfo{};
+        allocatorCreateInfo.instance = instance.getVkInstance();
+        allocatorCreateInfo.physicalDevice = device.getVkPhysicalDevice();
+        allocatorCreateInfo.device = device.getVkDevice();
+        vmaCreateAllocator(&allocatorCreateInfo, &allocator);
+    }
 
     SharedContext::~SharedContext() {
+        vmaDestroyAllocator(allocator);
         device.destroy();
         if (surface.has_value()) {
             surface->destroy(instance.getVkInstance());
@@ -60,6 +71,10 @@ namespace vulkan {
 
     Device SharedContext::getDevice() {
         return device;
+    }
+
+    VmaAllocator SharedContext::getAllocator() {
+        return allocator;
     }
 
 }

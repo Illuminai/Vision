@@ -4,6 +4,8 @@
 #include "vulkan/core/Instance.h"
 #include "vulkan/core/Device.h"
 
+#include "vk_mem_alloc.h"
+
 namespace vulkan {
     class SharedContext;
 }
@@ -23,10 +25,13 @@ public:
 
     Device getDevice();
 
+    VmaAllocator getAllocator();
+
 private:
     Instance instance;
     std::optional<Surface> surface;
     Device device;
+    VmaAllocator allocator;
 
     static Instance createInstance(std::vector<std::tuple<const char *, bool>> instanceExtensions,
                             std::vector<const char *> validationLayers,

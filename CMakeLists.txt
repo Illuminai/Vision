@@ -22,10 +22,10 @@ add_executable(${PROJECT_NAME}
         src/vulkan/core/Context.cpp
         src/vulkan/core/InFlightFrames.cpp
         src/vulkan/core/Swapchain.cpp
-
+        src/vulkan/shader/ShaderModule.cpp
 
         #TODO: Vulkan
-        src/vulkan/shader/ShaderModule.cpp
+        #src/vulkan/pipeline/RasterizationPipeline.cpp
 
         #TODO: Windowing
         src/windowing/WindowManager.cpp

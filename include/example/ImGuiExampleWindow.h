@@ -9,6 +9,9 @@ public:
 
     void onImGuiFrameRender() override;
 
+    void toggleButton(const char* str_id, bool* v);
+
+    bool test{false};
 };
 
 

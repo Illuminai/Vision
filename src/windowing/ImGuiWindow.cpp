@@ -1,5 +1,7 @@
 #include "windowing/ImGuiWindow.h"
 
+#include <cmrc/cmrc.hpp>
+CMRC_DECLARE(fonts);
 
 namespace windowing {
 
@@ -36,7 +38,7 @@ namespace windowing {
         ImGuiIO &io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-        io.WantSaveIniSettings = false;
+        io.IniFilename = nullptr;
 
         createRenderPass();
 
@@ -55,6 +57,11 @@ namespace windowing {
         init_info.CheckVkResultFn = [](VkResult result) { vulkan::checkError(result, "Internal ImGui operation"); };
         ImGui_ImplVulkan_Init(&init_info, renderPass);
 
+        //TODO: Remove default font
+        auto fs = cmrc::fonts::get_filesystem();
+        auto font = fs.open("fonts/OpenSans-Regular.ttf");
+        std::string fontMem{font.begin(), font.end()};
+        ImGui::GetIO().Fonts->AddFontFromMemoryTTF(fontMem.data(), fontMem.size(), 16.0f);
         context->executeTransient([](VkCommandBuffer commandBuffer) {
             return ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
         });
