@@ -26,6 +26,7 @@ add_executable(${PROJECT_NAME}
 
         #TODO: Vulkan
         #src/vulkan/pipeline/RasterizationPipeline.cpp
+        src/vulkan/memory/Texture.cpp
 
         #TODO: Windowing
         src/windowing/WindowManager.cpp

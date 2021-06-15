@@ -9,6 +9,7 @@ add_subdirectory(implot)
 add_subdirectory(stb)
 add_subdirectory(glm)
 add_subdirectory(tinyobjloader)
+add_subdirectory(iconfont)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
         glfw
@@ -19,6 +20,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         stb
         glm
         tinyobjloader
+        iconfont
         )
 
 # Vulkan

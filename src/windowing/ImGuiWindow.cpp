@@ -1,5 +1,7 @@
 #include "windowing/ImGuiWindow.h"
 
+#include "IconsFontAwesome5.h"
+
 #include <cmrc/cmrc.hpp>
 CMRC_DECLARE(fonts);
 
@@ -62,6 +64,13 @@ namespace windowing {
         auto font = fs.open("fonts/OpenSans-Regular.ttf");
         std::string fontMem{font.begin(), font.end()};
         ImGui::GetIO().Fonts->AddFontFromMemoryTTF(fontMem.data(), fontMem.size(), 16.0f);
+
+        auto imgFont = fs.open("fonts/fa-solid-900.ttf");
+        std::string imgFontMem{imgFont.begin(), imgFont.end()};
+        static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+        ImFontConfig icons_config; icons_config.MergeMode = true; icons_config.PixelSnapH = true;
+        io.Fonts->AddFontFromMemoryTTF( imgFontMem.data(), imgFontMem.size(), 14.0f, &icons_config, icons_ranges );
+
         context->executeTransient([](VkCommandBuffer commandBuffer) {
             return ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
         });
