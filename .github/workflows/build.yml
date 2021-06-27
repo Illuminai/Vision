@@ -1,0 +1,30 @@
+name: build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  release:
+    types:
+      - created
+
+jobs:
+
+  Linux:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib g++-multilib libvulkan-dev
+
+      - name: Build Vision
+        run: |
+          cmake -S . -B ./bin/release -D CMAKE_BUILD_TYPE=Release
+          cmake --build ./bin/release
